@@ -21,6 +21,7 @@ import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { useDashboardWorkspace } from "@/contexts/dashboard-workspace-context";
 import type { MessageKey } from "@/i18n/messages";
 import { useTranslations } from "@/i18n/provider";
+import { downloadResponseBlob } from "@/lib/download";
 import { RAMP_PROVIDER_OPTIONS } from "@/lib/ramps";
 import { useDebounce } from "@/lib/use-debounce";
 import { cn } from "@/lib/utils";
@@ -503,18 +504,7 @@ export function TransactionsWorkspace({
         );
       }
 
-      const blob = await response.blob();
-      const disposition = response.headers.get("Content-Disposition");
-      const filenameMatch = /filename="([^"]+)"/.exec(disposition ?? "");
-      const filename = filenameMatch?.[1] ?? "sdp-transactions.csv";
-      const href = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = href;
-      link.download = filename;
-      document.body.append(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(href);
+      await downloadResponseBlob(response, "sdp-transactions.csv");
     } catch (error) {
       setCsvError(
         error instanceof Error
