@@ -86,7 +86,10 @@ function escapeCsvValue(value: string | null | undefined): string {
     return "";
   }
 
-  return /[",\n\r]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
+  const safeValue = /^[=+\-@]/.test(value) ? `'${value}` : value;
+  return /[",\n\r]/.test(safeValue)
+    ? `"${safeValue.replaceAll('"', '""')}"`
+    : safeValue;
 }
 
 function toCsv(transfers: PaymentTransferSummary[]): string {
