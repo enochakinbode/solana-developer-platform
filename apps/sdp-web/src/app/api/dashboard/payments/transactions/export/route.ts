@@ -83,6 +83,16 @@ const COLUMNS = [
 
 const SPREADSHEET_FORMULA_PREFIXES = new Set(["=", "+", "-", "@"]);
 
+function toCsv(transfers: PaymentTransferSummary[]): string {
+  const rows = [
+    COLUMNS.map(([header]) => header).join(","),
+    ...transfers.map((transfer) =>
+      COLUMNS.map(([, read]) => escapeCsvValue(read(transfer))).join(",")
+    ),
+  ];
+  return `${rows.join("\n")}\n`;
+}
+
 function escapeCsvValue(value: string | null | undefined): string {
   if (value === null || value === undefined) {
     return "";
@@ -93,16 +103,6 @@ function escapeCsvValue(value: string | null | undefined): string {
 }
 
 function isSpreadsheetFormulaValue(value: string): boolean {
-  const firstContentChar = Array.from(value).find((char) => char.charCodeAt(0) > 0x20);
-  return firstContentChar !== undefined && SPREADSHEET_FORMULA_PREFIXES.has(firstContentChar);
-}
-
-function toCsv(transfers: PaymentTransferSummary[]): string {
-  const rows = [
-    COLUMNS.map(([header]) => header).join(","),
-    ...transfers.map((transfer) =>
-      COLUMNS.map(([, read]) => escapeCsvValue(read(transfer))).join(",")
-    ),
-  ];
-  return `${rows.join("\n")}\n`;
+  const normalizedValue = value.replace(/^[\p{Cc}\p{Cf}\p{Z}]+/u, "");
+  return SPREADSHEET_FORMULA_PREFIXES.has(normalizedValue[0]);
 }

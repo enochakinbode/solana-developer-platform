@@ -109,16 +109,28 @@ describe("GET /api/dashboard/payments/transactions/export", () => {
             providerReference: " \t@reference",
             memo: "\u0000-memo",
           }),
+          transfer({
+            id: "trf_unicode_formula",
+            amount: "\u00a0=1+1",
+            source: "\u200b+source",
+            providerReference: "\u2060@reference",
+            memo: "\ufeff-memo",
+          }),
         ],
-        meta: { total: 1, hasMore: false },
+        meta: { total: 2, hasMore: false },
       })
     );
     mocks.createSdpApiClient.mockResolvedValue({ request });
 
     const response = await GET(exportRequest());
+    const csv = await response.text();
 
-    await expect(response.text()).resolves.toContain(
+    expect(csv).toContain(
       "trf_formula,,,,confirmed,,'=1+1,,,,'+source,,,' \t@reference,,'\u0000-memo\n"
+    );
+
+    expect(csv).toContain(
+      "trf_unicode_formula,,,,confirmed,,'\u00a0=1+1,,,,'\u200b+source,,,'\u2060@reference,,'\ufeff-memo\n"
     );
   });
 
